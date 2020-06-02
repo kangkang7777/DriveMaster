@@ -12,10 +12,14 @@ let collideMeshList = [];//障碍物与车辆集合
 let speed = 10;//游戏速度
 let obstacleNum =8;//障碍物数量
 let vehicleNum =5;//过往汽车数量
+let active = true;//暂停
+let sound = true;//音效
 let Score = document.getElementById("score");
 let Console = document.getElementById("console");
 let up = document.getElementById("up");
 let down = document.getElementById("down");
+let pause = document.getElementById("active");
+let music = document.getElementById("sound");
 
 init();
 animate();
@@ -125,9 +129,10 @@ function init() {
     // 加入障碍物
     for(let i =0;i<obstacleNum;i++)
     {
+        let url = "res/texture/rock"+randomInt(1,4)+".png";
         let obstacleGeometry = new THREE.CubeGeometry(randomInt(50, 80), randomInt(70, 100), 10);
         let obstacleMaterial = new THREE.MeshBasicMaterial({
-            map: THREE.ImageUtils.loadTexture("res/texture/obstacle.png"),
+            map: THREE.ImageUtils.loadTexture(url),
         });
         obstacleMaterial.transparent = true;
         let obstacle = new THREE.Mesh(obstacleGeometry, [undefined,undefined,undefined,undefined,obstacleMaterial,undefined]);
@@ -140,9 +145,10 @@ function init() {
     // 加入过往车辆
     for(let i =0;i<vehicleNum;i++)
     {
+        let url = "res/texture/car"+randomInt(1,3)+".png";
         let vehicleGeometry = new THREE.CubeGeometry(120, 70, 10);
         let vehicleMaterial = new THREE.MeshBasicMaterial({
-            map: THREE.ImageUtils.loadTexture("res/texture/vehicle.png"),
+            map: THREE.ImageUtils.loadTexture(url),
 
         });
         vehicleMaterial.transparent = true;
@@ -192,12 +198,37 @@ function init() {
             setTimeout(function(){Console.innerText = ""},2500);
         }
     },false)
+    pause.addEventListener('click',function(){
+        if(active === true)
+        {
+            active = false;
+            pause.innerText = "继续";
+        }
+        else
+        {
+            active = true;
+            pause.innerText = "暂停";
+        }
+    },false)
+    music.addEventListener('click',function(){
+        if(sound === true)
+        {
+            sound = false;
+            music.innerText = "音效：关";
+        }
+        else
+        {
+            sound = true;
+            music.innerText = "音效：开";
+        }
+    },false)
 }
 
 function animate() {
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
-    update();
+    if(active)
+        update();
 }
 
 function update() {
@@ -269,7 +300,8 @@ function collisionUpdate() {
     }
 
     function crash() {
-        document.getElementById('crash').play()
+        if(sound)
+            document.getElementById('crash').play()
         score-=5+speed/5;
         Score.innerText = "Score : " +parseInt(score);
         Console.innerText = "撞上了";
