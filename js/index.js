@@ -3,7 +3,7 @@ let container, scene, camera, renderer, controls;
 let keyboard = new THREEx.KeyboardState();
 let clock = new THREE.Clock;
 let score = 0;//分数
-let movingCube; //车
+let player; //车
 let lineBox = [];//标线+树
 let floorBox = [];//路边
 let obstacleBox = [];//障碍物
@@ -112,23 +112,21 @@ function init() {
         lineBox.push(treeR);
     }
 
-    // 加入控制的cube
-    let cubeGeometry = new THREE.CubeGeometry(50, 50, 50, 10, 10, 10);
+    // 加入玩家
+    let cubeGeometry = new THREE.CubeGeometry(90, 60, 50, 10, 10, 10);
     let wireMaterial = new THREE.MeshBasicMaterial({
-        color: 0xfff000,
-        wireframe: true
+        map: THREE.ImageUtils.loadTexture("res/texture/player.png"),
     });
-    movingCube = new THREE.Mesh(cubeGeometry, wireMaterial);
-    movingCube.position.set(0, 25, 0);
-    scene.add(movingCube);
+    wireMaterial.transparent = true;
+    player = new THREE.Mesh(cubeGeometry, [undefined,undefined,undefined,undefined,wireMaterial,undefined]);
+    player.position.set(0, 25, 0);
+    scene.add(player);
 
     // 加入障碍物
     for(let i =0;i<obstacleNum;i++)
     {
         let obstacleGeometry = new THREE.CubeGeometry(randomInt(50, 80), randomInt(70, 100), 10);
         let obstacleMaterial = new THREE.MeshBasicMaterial({
-            //color: Math.random() * 0xffffff,
-            //size: 3
             map: THREE.ImageUtils.loadTexture("res/texture/obstacle.png"),
         });
         obstacleMaterial.transparent = true;
@@ -204,7 +202,7 @@ function animate() {
 
 function update() {
     let delta = clock.getDelta();
-    score+=delta;
+    score+=delta*speed/20;
     keyboardEvent();
     sceneUpdate();
     obstacleUpdate();
@@ -252,14 +250,14 @@ function sceneUpdate() {
 }
 
 function collisionUpdate() {
-    let originPoint = movingCube.position.clone();
+    let originPoint = player.position.clone();
 
-    for (let vertexIndex = 0; vertexIndex < movingCube.geometry.vertices.length; vertexIndex++) {
+    for (let vertexIndex = 0; vertexIndex < player.geometry.vertices.length; vertexIndex++) {
         // 顶点原始坐标
-        let localVertex = movingCube.geometry.vertices[vertexIndex].clone();
+        let localVertex = player.geometry.vertices[vertexIndex].clone();
         // 顶点经过变换后的坐标
-        let globalVertex = localVertex.applyMatrix4(movingCube.matrix);
-        let directionVector = globalVertex.sub(movingCube.position);
+        let globalVertex = localVertex.applyMatrix4(player.matrix);
+        let directionVector = globalVertex.sub(player.position);
 
         let ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
         let collisionResults = ray.intersectObjects(collideMeshList);
@@ -272,7 +270,7 @@ function collisionUpdate() {
 
     function crash() {
         document.getElementById('crash').play()
-        score-=5;
+        score-=5+speed/5;
         Score.innerText = "Score : " +parseInt(score);
         Console.innerText = "撞上了";
         setTimeout(function(){Console.innerText = ""},2500);
@@ -283,8 +281,8 @@ function collisionUpdate() {
 function keyboardEvent() {
     let moveDistance = speed;
     if (keyboard.pressed("left") || keyboard.pressed("A")) {
-        if (movingCube.position.x > -270)
-            movingCube.position.x -= moveDistance;
+        if (player.position.x > -270)
+            player.position.x -= moveDistance;
         if (camera.position.x > -150) {
             camera.position.x -= moveDistance * 0.6;
             if (camera.rotation.z > -5 * Math.PI / 180) {
@@ -293,8 +291,8 @@ function keyboardEvent() {
         }
     }
     if (keyboard.pressed("right") || keyboard.pressed("D")) {
-        if (movingCube.position.x < 270)
-            movingCube.position.x += moveDistance;
+        if (player.position.x < 270)
+            player.position.x += moveDistance;
         if (camera.position.x < 150) {
             camera.position.x += moveDistance * 0.6;
             if (camera.rotation.z < 5 * Math.PI / 180) {
@@ -303,12 +301,12 @@ function keyboardEvent() {
         }
     }
     if (keyboard.pressed("up") || keyboard.pressed("W")) {
-        if(movingCube.position.z>-3500)
-            movingCube.position.z -= moveDistance;
+        if(player.position.z>-3500)
+            player.position.z -= moveDistance;
     }
     if (keyboard.pressed("down") || keyboard.pressed("S")) {
-        if(movingCube.position.z<0)
-            movingCube.position.z += moveDistance;
+        if(player.position.z<0)
+            player.position.z += moveDistance;
     }
     if (!(keyboard.pressed("left") || keyboard.pressed("right") ||
         keyboard.pressed("A") || keyboard.pressed("D"))) {
