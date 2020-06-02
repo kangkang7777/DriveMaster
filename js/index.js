@@ -2,7 +2,7 @@
 let container, scene, camera, renderer, controls;
 let keyboard = new THREEx.KeyboardState();
 let clock = new THREE.Clock;
-
+let score = 0;//分数
 let movingCube; //车
 let lineBox = [];//标线+树
 let floorBox = [];//路边
@@ -12,6 +12,10 @@ let collideMeshList = [];//障碍物与车辆集合
 let speed = 10;//游戏速度
 let obstacleNum =8;//障碍物数量
 let vehicleNum =5;//过往汽车数量
+let Score = document.getElementById("score");
+let Console = document.getElementById("console");
+let up = document.getElementById("up");
+let down = document.getElementById("down");
 
 init();
 animate();
@@ -166,6 +170,30 @@ function init() {
     let skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
     skyBox.position.set(300,0,0);
     scene.add(skyBox);
+
+    //按钮事件
+    up.addEventListener('click',function(){
+        if(speed<100) {
+            speed += 10;
+            Console.innerText = "目前速度为："+speed;
+            setTimeout(function(){Console.innerText = ""},2500);
+        }
+        else {
+            Console.innerText = "目前速度已到最大值！";
+            setTimeout(function(){Console.innerText = ""},2500);
+        }
+    },false)
+    down.addEventListener('click',function(){
+        if(speed>20) {
+            speed -= 10;
+            Console.innerText = "目前速度为："+speed;
+            setTimeout(function(){Console.innerText = ""},2500);
+        }
+        else {
+            Console.innerText = "目前速度已到最小值！";
+            setTimeout(function(){Console.innerText = ""},2500);
+        }
+    },false)
 }
 
 function animate() {
@@ -176,6 +204,7 @@ function animate() {
 
 function update() {
     let delta = clock.getDelta();
+    score+=delta;
     keyboardEvent();
     sceneUpdate();
     obstacleUpdate();
@@ -209,6 +238,7 @@ function sceneUpdate() {
         lineBox[i].position.z +=speed;
         if(lineBox[i].position.z>150) {
             lineBox[i].position.z = -3350;
+            Score.innerText = "Score : " +parseInt(score);
         }
     }
     for (let i =0;i < floorBox.length;i++)
@@ -216,6 +246,7 @@ function sceneUpdate() {
         floorBox[i].position.z +=speed;
         if(floorBox[i].position.z>0) {
             floorBox[i].position.z = -5000;
+            Score.innerText = "Score : " +parseInt(score);
         }
     }
 }
@@ -233,28 +264,21 @@ function collisionUpdate() {
         let ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
         let collisionResults = ray.intersectObjects(collideMeshList);
         if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
-            console.log("1111");
+            console.log("撞上辣");
             crash();
             break;
         }
     }
 
     function crash() {
-
+        document.getElementById('crash').play()
+        score-=5;
+        Score.innerText = "Score : " +parseInt(score);
+        Console.innerText = "撞上了";
+        setTimeout(function(){Console.innerText = ""},2500);
     }
 }
 
-function updateCollideMesh() {
-    for (i = 0; i < collideMeshList.length; i++) {
-        if (collideMeshList[i].position.z > camera.position.z) {
-            scene.remove(cubes[i]);
-            cubes.splice(i, 1);
-            collideMeshList.splice(i, 1);
-        } else {
-            cubes[i].position.z += 10;
-        }
-    }
-}
 
 function keyboardEvent() {
     let moveDistance = speed;
@@ -279,10 +303,12 @@ function keyboardEvent() {
         }
     }
     if (keyboard.pressed("up") || keyboard.pressed("W")) {
-        movingCube.position.z -= moveDistance;
+        if(movingCube.position.z>-3500)
+            movingCube.position.z -= moveDistance;
     }
     if (keyboard.pressed("down") || keyboard.pressed("S")) {
-        movingCube.position.z += moveDistance;
+        if(movingCube.position.z<0)
+            movingCube.position.z += moveDistance;
     }
     if (!(keyboard.pressed("left") || keyboard.pressed("right") ||
         keyboard.pressed("A") || keyboard.pressed("D"))) {

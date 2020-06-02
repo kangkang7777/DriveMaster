@@ -11,11 +11,24 @@
     <script src="lib/OrbitControls.js"></script>
     <style>
         body {background-color: #111111;overflow: hidden;}
-        /*canvas {display: block;margin: 0 auto;top: 50px;}*/
+        .speed { position: absolute;height: 60px;width: 10%;padding: 8px;margin: 8px auto;text-align: center;}
+        .speed button { width: 100px; height: 50px;border-width: 0;border-radius: 3px;background-color: #666666;cursor: pointer; font-family: Chalkboard, serif;color: white;font-size: 24px;margin: 1px 1px 1px 1px;}
+        .container {position: absolute;top: 10px;right: 10px;transition: transform 0.5s 4s;}
+        .container #score {color: white;font-size: 8vh;font-family: Chalkboard,serif;}
+        .container #console {color: white;font-size: 8vh;font-family: Exo, serif;font-weight: 700;}
     </style>
 </head>
 <body>
+    <div class="speed">
+        <button id="up">加速</button>
+        <button id="down">减速</button>
+    </div>
+    <div class="container">
+        <div id="score"></div>
+        <div id="console"></div>
+    </div>
     <div id="index"></div>
     <script src="js/index.js"></script>
+    <audio src="res/sound/crash.mp3" preload="auto" id="crash"></audio>
 </body>
 </html>
