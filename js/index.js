@@ -3,7 +3,10 @@ let container, scene, camera, renderer, controls;
 let keyboard = new THREEx.KeyboardState();
 let clock = new THREE.Clock;
 
-let movingCube;
+let movingCube; //车
+let lineBox = [];//公路标线
+let leftTreeBox =  [];//左边树
+let rightTreeBox =  [];//右边树
 let cubes = [];
 let message = document.getElementById("message");
 let crash = false;
@@ -36,7 +39,7 @@ function init() {
         color: 0x222222,
         side: THREE.DoubleSide
     });
-    let roadGeometry = new THREE.PlaneGeometry(600, 10000, 10, 10);
+    let roadGeometry = new THREE.PlaneGeometry(600, 8000, 10, 10);
     let road = new THREE.Mesh(roadGeometry, roadMaterial);
     road.position.y = -0.5;
     road.rotation.x = Math.PI / 2;
@@ -44,6 +47,7 @@ function init() {
 
     // 加入平面
     let floorMaterial = new THREE.MeshBasicMaterial({
+        map: THREE.ImageUtils.loadTexture("res/texture/roadtexture.jpg"),
         color: 0xF1E3A7,
         side: THREE.DoubleSide
     });
@@ -60,6 +64,49 @@ function init() {
     floor2.rotation.x = Math.PI / 2;
     scene.add(floor2);
 
+    // 加入线
+    let lineMaterial = new THREE.MeshBasicMaterial({
+        //map: THREE.ImageUtils.loadTexture("res/texture/roadtexture.jpg"),
+        color: 0xFFFFFF,
+        side: THREE.DoubleSide
+    });
+    let lineGeometry = new THREE.PlaneGeometry(20, 200, 10, 10);
+    for(let i =0;i<7;i++) {
+        let line = new THREE.Mesh(lineGeometry, lineMaterial);
+        //line.position.y = -0.5;
+        line.position.z = -100*(i*5+1);
+        line.rotation.x = Math.PI / 2;
+        scene.add(line);
+        lineBox.push(line);
+    }
+
+    // 加入树
+    let treeMaterial = new THREE.MeshBasicMaterial({
+        map: THREE.ImageUtils.loadTexture("res/texture/tree.png"),
+        color: 0xFFFFFF,
+        side: THREE.FrontSide,
+        //alphaMap:0xFFFFFF
+    });
+    treeMaterial.transparent = true;
+    let treeGeometry = new THREE.PlaneGeometry(100, 200, 10, 10);
+    for(let i =0;i<7;i++) {
+        let treeL = new THREE.Mesh(treeGeometry, treeMaterial);
+        let treeR = new THREE.Mesh(treeGeometry, treeMaterial);
+        treeL.position.z = -100*(i*5+1);
+        treeL.position.x = -350;
+        treeL.position.y = 90;
+        treeR.position.z = -100*(i*5+1);
+        treeR.position.x = 350;
+        treeR.position.y = 90;
+        //tree.rotation.x = Math.PI / 2;
+        scene.add(treeL);
+        lineBox.push(treeL);
+        scene.add(treeR);
+        lineBox.push(treeR);
+    }
+
+
+
     // 加入控制的cube
     let cubeGeometry = new THREE.CubeGeometry(50, 50, 50, 10, 10, 10);
     let wireMaterial = new THREE.MeshBasicMaterial({
@@ -71,10 +118,10 @@ function init() {
     scene.add(movingCube);
 
     //包围盒
-    let path = "res/";
+    let path = "res/box/";
     let directions  = ["sky_negX", "sky_posX", "sky_posY", "sky_negY", "sky_posZ", "sky_negZ"];//获取对象
     let format = ".png";
-    let skyGeometry = new THREE.BoxGeometry( 5000, 5000, 5000 );
+    let skyGeometry = new THREE.BoxGeometry( 8000, 8000, 8000 );
     let materialArray = [];
     for (var i = 0; i < 6; i++)
         materialArray.push( new THREE.MeshBasicMaterial({
@@ -95,8 +142,19 @@ function animate() {
 
 function update() {
     let delta = clock.getDelta();
-    let moveDistance = 200 * delta;
+    keyboardEvent(delta);
 
+    for(let i =0;i < lineBox.length;i++)
+    {
+        lineBox[i].position.z +=10;
+        if(lineBox[i].position.z>150)
+            lineBox[i].position.z = -3350;
+    }
+
+}
+
+function keyboardEvent(delta) {
+    let moveDistance = 200 * delta;
     if (keyboard.pressed("left") || keyboard.pressed("A")) {
         if (movingCube.position.x > -270)
             movingCube.position.x -= moveDistance;
@@ -123,7 +181,6 @@ function update() {
     if (keyboard.pressed("down") || keyboard.pressed("S")) {
         movingCube.position.z += moveDistance;
     }
-
     if (!(keyboard.pressed("left") || keyboard.pressed("right") ||
         keyboard.pressed("A") || keyboard.pressed("D"))) {
         delta = camera.rotation.z;
