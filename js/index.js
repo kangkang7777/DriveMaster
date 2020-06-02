@@ -4,14 +4,14 @@ let keyboard = new THREEx.KeyboardState();
 let clock = new THREE.Clock;
 
 let movingCube; //车
-let lineBox = [];//公路标线
-let leftTreeBox =  [];//左边树
-let rightTreeBox =  [];//右边树
-let cubes = [];
-let message = document.getElementById("message");
-let crash = false;
-let score = 0;
-let scoreText = document.getElementById("score");
+let lineBox = [];//标线+树
+let floorBox = [];//路边
+let obstacleBox = [];//障碍物
+let vehicleBox = [];//过往车辆
+let collideMeshList = [];//障碍物与车辆集合
+let speed = 10;//游戏速度
+let obstacleNum =8;//障碍物数量
+let vehicleNum =5;//过往汽车数量
 
 init();
 animate();
@@ -55,14 +55,18 @@ function init() {
     let floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.position.y = -0.5;
     floor.position.x = -1300;
+    floor.position.z = -5000;
     floor.rotation.x = Math.PI / 2;
     scene.add(floor);
+    floorBox.push(floor);
 
     let floor2 = new THREE.Mesh(floorGeometry, floorMaterial);
     floor2.position.y = -0.5;
     floor2.position.x = 1300;
+    floor2.position.z = -5000;
     floor2.rotation.x = Math.PI / 2;
     scene.add(floor2);
+    floorBox.push(floor2);
 
     // 加入线
     let lineMaterial = new THREE.MeshBasicMaterial({
@@ -83,8 +87,7 @@ function init() {
     // 加入树
     let treeMaterial = new THREE.MeshBasicMaterial({
         map: THREE.ImageUtils.loadTexture("res/texture/tree.png"),
-        color: 0xFFFFFF,
-        side: THREE.FrontSide,
+        //side: THREE.FrontSide,
         //alphaMap:0xFFFFFF
     });
     treeMaterial.transparent = true;
@@ -105,8 +108,6 @@ function init() {
         lineBox.push(treeR);
     }
 
-
-
     // 加入控制的cube
     let cubeGeometry = new THREE.CubeGeometry(50, 50, 50, 10, 10, 10);
     let wireMaterial = new THREE.MeshBasicMaterial({
@@ -117,20 +118,53 @@ function init() {
     movingCube.position.set(0, 25, 0);
     scene.add(movingCube);
 
+    // 加入障碍物
+    for(let i =0;i<obstacleNum;i++)
+    {
+        let obstacleGeometry = new THREE.CubeGeometry(randomInt(50, 80), randomInt(70, 100), 10);
+        let obstacleMaterial = new THREE.MeshBasicMaterial({
+            //color: Math.random() * 0xffffff,
+            //size: 3
+            map: THREE.ImageUtils.loadTexture("res/texture/obstacle.png"),
+        });
+        obstacleMaterial.transparent = true;
+        let obstacle = new THREE.Mesh(obstacleGeometry, [undefined,undefined,undefined,undefined,obstacleMaterial,undefined]);
+        obstacle.position.set(randomInt(-250, 250), 25, randomInt(-10000, -500));
+        scene.add(obstacle);
+        obstacleBox.push(obstacle);
+        collideMeshList.push(obstacle);
+    }
+
+    // 加入过往车辆
+    for(let i =0;i<vehicleNum;i++)
+    {
+        let vehicleGeometry = new THREE.CubeGeometry(120, 70, 10);
+        let vehicleMaterial = new THREE.MeshBasicMaterial({
+            map: THREE.ImageUtils.loadTexture("res/texture/vehicle.png"),
+
+        });
+        vehicleMaterial.transparent = true;
+        let vehicle = new THREE.Mesh(vehicleGeometry, [undefined,undefined,undefined,undefined,vehicleMaterial,undefined]);
+        vehicle.position.set(randomInt(-250, 250), 25, randomInt(-10000, -500));
+        scene.add(vehicle);
+        vehicleBox.push(vehicle);
+        collideMeshList.push(vehicle);
+    }
+
     //包围盒
     let path = "res/box/";
     let directions  = ["sky_negX", "sky_posX", "sky_posY", "sky_negY", "sky_posZ", "sky_negZ"];//获取对象
     let format = ".png";
     let skyGeometry = new THREE.BoxGeometry( 8000, 8000, 8000 );
     let materialArray = [];
-    for (var i = 0; i < 6; i++)
+    for (let i = 0; i < 6; i++)
         materialArray.push( new THREE.MeshBasicMaterial({
             map: THREE.ImageUtils.loadTexture( path + directions[i] + format ),
             side: THREE.BackSide
         }));
     let skyMaterial = new THREE.MeshFaceMaterial( materialArray );
     let skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
-    skyBox.position.set(300,0,0)
+    skyBox.position.set(300,0,0);
     scene.add(skyBox);
 }
 
@@ -142,19 +176,88 @@ function animate() {
 
 function update() {
     let delta = clock.getDelta();
-    keyboardEvent(delta);
-
-    for(let i =0;i < lineBox.length;i++)
-    {
-        lineBox[i].position.z +=10;
-        if(lineBox[i].position.z>150)
-            lineBox[i].position.z = -3350;
-    }
-
+    keyboardEvent();
+    sceneUpdate();
+    obstacleUpdate();
+    vehicleUpdate();
+    collisionUpdate();
 }
 
-function keyboardEvent(delta) {
-    let moveDistance = 200 * delta;
+
+
+function vehicleUpdate() {
+    for(let i =0;i < vehicleBox.length;i++)
+    {
+        vehicleBox[i].position.z +=speed*0.5+i/10;
+        if(vehicleBox[i].position.z>150)
+            vehicleBox[i].position.set(randomInt(-250, 250), 25,-2000+randomInt(-8000,-2000));
+    }
+}
+
+function obstacleUpdate() {
+    for(let i =0;i < obstacleBox.length;i++)
+    {
+        obstacleBox[i].position.z +=speed;
+        if(obstacleBox[i].position.z>150)
+            obstacleBox[i].position.set(randomInt(-250, 250), 25,-2000+randomInt(-8000,-2000));
+    }
+}
+
+function sceneUpdate() {
+    for(let i =0;i < lineBox.length;i++)
+    {
+        lineBox[i].position.z +=speed;
+        if(lineBox[i].position.z>150) {
+            lineBox[i].position.z = -3350;
+        }
+    }
+    for (let i =0;i < floorBox.length;i++)
+    {
+        floorBox[i].position.z +=speed;
+        if(floorBox[i].position.z>0) {
+            floorBox[i].position.z = -5000;
+        }
+    }
+}
+
+function collisionUpdate() {
+    let originPoint = movingCube.position.clone();
+
+    for (let vertexIndex = 0; vertexIndex < movingCube.geometry.vertices.length; vertexIndex++) {
+        // 顶点原始坐标
+        let localVertex = movingCube.geometry.vertices[vertexIndex].clone();
+        // 顶点经过变换后的坐标
+        let globalVertex = localVertex.applyMatrix4(movingCube.matrix);
+        let directionVector = globalVertex.sub(movingCube.position);
+
+        let ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
+        let collisionResults = ray.intersectObjects(collideMeshList);
+        if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
+            console.log("1111");
+            crash();
+            break;
+        }
+    }
+
+    function crash() {
+
+    }
+}
+
+function updateCollideMesh() {
+    for (i = 0; i < collideMeshList.length; i++) {
+        if (collideMeshList[i].position.z > camera.position.z) {
+            scene.remove(cubes[i]);
+            cubes.splice(i, 1);
+            collideMeshList.splice(i, 1);
+        } else {
+            cubes[i].position.z += 10;
+        }
+    }
+}
+
+function keyboardEvent() {
+    let moveDistance = speed;
     if (keyboard.pressed("left") || keyboard.pressed("A")) {
         if (movingCube.position.x > -270)
             movingCube.position.x -= moveDistance;
@@ -186,4 +289,8 @@ function keyboardEvent(delta) {
         delta = camera.rotation.z;
         camera.rotation.z -= delta / 10;
     }
+}
+
+function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
 }
