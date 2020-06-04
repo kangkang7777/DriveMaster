@@ -235,7 +235,7 @@ function init() {
     //包围盒
     let path = "res/box/";
     let directions  = ["sky_negX", "sky_posX", "sky_posY", "sky_negY", "sky_posZ", "sky_negZ"];//获取对象
-    let format = ".png";
+    let format = ".jpg";
     let skyGeometry = new THREE.BoxGeometry( 8000, 8000, 8000 );
     let materialArray = [];
     for (let i = 0; i < 6; i++)

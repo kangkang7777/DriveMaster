@@ -216,7 +216,7 @@ function init() {
 
     let matchGeometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
     let matchMaterial = new THREE.MeshBasicMaterial({
-        map: THREE.ImageUtils.loadTexture("res/match/match15.png"),
+        map: THREE.ImageUtils.loadTexture("res/match/match.png"),
     });
     matchMaterial.transparent = true;
     match = new THREE.Mesh(matchGeometry, [undefined, undefined, undefined, undefined, matchMaterial, undefined]);
@@ -234,7 +234,7 @@ function init() {
     //包围盒
     let path = "res/box/";
     let directions  = ["sky_negX", "sky_posX", "sky_posY", "sky_negY", "sky_posZ", "sky_negZ"];//获取对象
-    let format = ".png";
+    let format = ".jpg";
     let skyGeometry = new THREE.BoxGeometry( 8000, 8000, 8000 );
     let materialArray = [];
     for (let i = 0; i < 6; i++)
