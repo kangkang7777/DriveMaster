@@ -173,7 +173,7 @@ function init() {
     }
 
     //加入奖励
-    let bonus20Geometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+    let bonus20Geometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
     let bonus20Material = new THREE.MeshBasicMaterial({
         map: THREE.ImageUtils.loadTexture("res/bonus/20.png"),
     });
@@ -183,7 +183,7 @@ function init() {
     bonus20.name = "bonus20";
     scene.add(bonus20);
 
-    let bonus50Geometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+    let bonus50Geometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
     let bonus50Material = new THREE.MeshBasicMaterial({
         map: THREE.ImageUtils.loadTexture("res/bonus/50.png"),
     });
@@ -193,7 +193,7 @@ function init() {
     bonus50.name = "bonus50";
     scene.add(bonus50);
 
-    let bonus100Geometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+    let bonus100Geometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
     let bonus100Material = new THREE.MeshBasicMaterial({
         map: THREE.ImageUtils.loadTexture("res/bonus/100.png"),
     });
@@ -203,7 +203,7 @@ function init() {
     bonus100.name = "bonus100";
     scene.add(bonus100);
 
-    let buffGeometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+    let buffGeometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
     let buffMaterial = new THREE.MeshBasicMaterial({
         map: THREE.ImageUtils.loadTexture("res/bonus/buff.png"),
     });
@@ -214,7 +214,7 @@ function init() {
     scene.add(buff);
 
     if(!challengeMode) {
-        let matchGeometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+        let matchGeometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
         let matchMaterial = new THREE.MeshBasicMaterial({
             map: THREE.ImageUtils.loadTexture("res/match/match.png"),
         });

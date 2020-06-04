@@ -4,6 +4,7 @@ let keyboard = new THREEx.KeyboardState();
 let clock = new THREE.Clock;
 let score = 0;//分数
 let player; //车
+let playerBox;
 let lineBox = [];//标线+树
 let floorBox = [];//路边
 let obstacleBox = [];//障碍物
@@ -31,6 +32,8 @@ let music = document.getElementById("sound");
 let buffText = document.getElementById("buff");
 let matchText = document.getElementById("match");
 let challenge = document.getElementById("mode");
+
+let wheels = [];
 init();
 animate();
 
@@ -48,9 +51,18 @@ function init() {
     renderer.setSize(screenWidth, screenHeight);
     container = document.getElementById("index");
     container.appendChild(renderer.domElement);
+    scene.environment = new RoomEnvironment( renderer );
     //窗口大小
     THREEx.WindowResize(renderer, camera);
     controls = new THREE.OrbitControls(camera, renderer.domElement);
+    //controls.target.set( 0, 0.5, 0 );
+
+    //player
+    let material = [];
+    material.transparent = true;
+    let cubeGeometry = new THREE.CubeGeometry(60, 60, 90, 10, 10, 10);
+    playerBox = new THREE.Mesh(cubeGeometry,material);
+    scene.add(playerBox);
 
     // 加入路面
     let roadMaterial = new THREE.MeshBasicMaterial({
@@ -64,11 +76,12 @@ function init() {
     scene.add(road);
 
     // 加入平面
-    let floorMaterial = new THREE.MeshBasicMaterial({
+    let floorMaterial = new THREE.MeshStandardMaterial({
         map: THREE.ImageUtils.loadTexture("res/texture/roadtexture.jpg"),
         color: 0xF1E3A7,
-        side: THREE.DoubleSide
-    });
+        side:THREE.BackSide
+
+});
     let floorGeometry = new THREE.PlaneGeometry(2000, 10000, 10, 10);
     let floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.position.y = -0.5;
@@ -131,14 +144,14 @@ function init() {
     }
 
     // 加入玩家
-    let cubeGeometry = new THREE.CubeGeometry(80, 60, 50, 10, 10, 10);
-    let wireMaterial = new THREE.MeshBasicMaterial({
-        map: THREE.ImageUtils.loadTexture("res/texture/player.png"),
-    });
-    wireMaterial.transparent = true;
-    player = new THREE.Mesh(cubeGeometry, [undefined,undefined,undefined,undefined,wireMaterial,undefined]);
-    player.position.set(0, 25, 0);
-    scene.add(player);
+    // let cubeGeometry = new THREE.CubeGeometry(80, 60, 50, 10, 10, 10);
+    // let wireMaterial = new THREE.MeshBasicMaterial({
+    //     map: THREE.ImageUtils.loadTexture("res/texture/player.png"),
+    // });
+    // wireMaterial.transparent = true;
+    // player = new THREE.Mesh(cubeGeometry, [undefined,undefined,undefined,undefined,wireMaterial,undefined]);
+    // player.position.set(0, 25, 0);
+    // scene.add(player);
 
     // 加入障碍物
     for(let i =0;i<obstacleNum;i++)
@@ -174,7 +187,7 @@ function init() {
     }
 
     //加入奖励
-    let bonus20Geometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+    let bonus20Geometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
     let bonus20Material = new THREE.MeshBasicMaterial({
         map: THREE.ImageUtils.loadTexture("res/bonus/20.png"),
     });
@@ -184,7 +197,7 @@ function init() {
     bonus20.name = "bonus20";
     scene.add(bonus20);
 
-    let bonus50Geometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+    let bonus50Geometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
     let bonus50Material = new THREE.MeshBasicMaterial({
         map: THREE.ImageUtils.loadTexture("res/bonus/50.png"),
     });
@@ -194,7 +207,7 @@ function init() {
     bonus50.name = "bonus50";
     scene.add(bonus50);
 
-    let bonus100Geometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+    let bonus100Geometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
     let bonus100Material = new THREE.MeshBasicMaterial({
         map: THREE.ImageUtils.loadTexture("res/bonus/100.png"),
     });
@@ -204,7 +217,7 @@ function init() {
     bonus100.name = "bonus100";
     scene.add(bonus100);
 
-    let buffGeometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+    let buffGeometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
     let buffMaterial = new THREE.MeshBasicMaterial({
         map: THREE.ImageUtils.loadTexture("res/bonus/buff.png"),
     });
@@ -214,7 +227,7 @@ function init() {
     buff.name = "buff";
     scene.add(buff);
 
-    let matchGeometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+    let matchGeometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
     let matchMaterial = new THREE.MeshBasicMaterial({
         map: THREE.ImageUtils.loadTexture("res/match/match.png"),
     });
@@ -246,6 +259,20 @@ function init() {
     let skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
     skyBox.position.set(300,0,0);
     scene.add(skyBox);
+
+
+    // Lights
+
+    scene.add( new THREE.HemisphereLight( 0x443333, 0xffffff, 5 ) );
+    //scene.add( new THREE.AmbientLight(0xffffff,5));
+
+    // const mainLight = new THREE.PointLight( 0xffffff, 5.0, 28, 2 );
+    // mainLight.position.set( 0.418, 16.199, 0.300 );
+    // scene.add( mainLight );
+    let T = new test();
+    T.initCar();
+
+
 
     //按钮事件
     up.addEventListener('click',function(){
@@ -301,12 +328,14 @@ function init() {
     challenge.addEventListener('click',function(){
         window.location.href = "racingMode.html";
     },false)
+
+
 }
 
 function animate() {
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
-    if(active)
+    if(active && player !== undefined)
         update();
 }
 
@@ -421,14 +450,16 @@ function bonusUpdate(delta) {
 }
 
 function collisionUpdate() {
-    let originPoint = player.position.clone();
+    //let originPoint = [player.position.x,player.position.y,player.position.z];
+    playerBox.position.set(player.position.x,player.position.y,player.position.z);
+    let originPoint = playerBox.position.clone();
 
-    for (let vertexIndex = 0; vertexIndex < player.geometry.vertices.length; vertexIndex++) {
+    for (let vertexIndex = 0; vertexIndex < playerBox.geometry.vertices.length; vertexIndex++) {
         // 顶点原始坐标
-        let localVertex = player.geometry.vertices[vertexIndex].clone();
+        let localVertex = playerBox.geometry.vertices[vertexIndex].clone();
         // 顶点经过变换后的坐标
-        let globalVertex = localVertex.applyMatrix4(player.matrix);
-        let directionVector = globalVertex.sub(player.position);
+        let globalVertex = localVertex.applyMatrix4(playerBox.matrix);
+        let directionVector = globalVertex.sub(playerBox.position);
 
         let ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
         let collisionResults = ray.intersectObjects(collideMeshList);
@@ -519,41 +550,68 @@ function collisionUpdate() {
 
 function keyboardEvent() {
     let moveDistance = speed;
+    for ( let i = 0; i < wheels.length; i ++ ) {
+        wheels[i].rotation.x = - performance.now()*speed/ 600 * Math.PI;
+    }
+
     if (keyboard.pressed("left") || keyboard.pressed("A")) {
-        if (player.position.x > -270)
+        if (player.position.x > -270) {
             player.position.x -= moveDistance;
+        }
         if (camera.position.x > -150) {
             camera.position.x -= moveDistance * 0.6;
             if (camera.rotation.z > -5 * Math.PI / 180) {
                 camera.rotation.z -= 0.2 * Math.PI / 180;
             }
+            for ( let i = 0; i < 2; i ++ ) {
+                if (wheels[i].rotation.z > -5 * Math.PI / 180) {
+                    wheels[i].rotation.z -= 0.2 * Math.PI / 180;
+                }
+            }
         }
     }
     if (keyboard.pressed("right") || keyboard.pressed("D")) {
-        if (player.position.x < 270)
+        if (player.position.x < 270) {
             player.position.x += moveDistance;
+        }
         if (camera.position.x < 150) {
             camera.position.x += moveDistance * 0.6;
             if (camera.rotation.z < 5 * Math.PI / 180) {
                 camera.rotation.z += 0.2 * Math.PI / 180;
             }
+            for ( let i = 0; i < 2; i ++ ) {
+                if (wheels[i].rotation.z < 5 * Math.PI / 180) {
+                    wheels[i].rotation.z += 0.2 * Math.PI / 180;
+                }
+            }
         }
     }
     if (keyboard.pressed("up") || keyboard.pressed("W")) {
-        if(player.position.z>-3500)
+        if(player.position.z>-3500) {
             player.position.z -= moveDistance;
+        }
     }
     if (keyboard.pressed("down") || keyboard.pressed("S")) {
-        if(player.position.z<0)
+        if(player.position.z<0) {
             player.position.z += moveDistance;
+        }
     }
     if (!(keyboard.pressed("left") || keyboard.pressed("right") ||
         keyboard.pressed("A") || keyboard.pressed("D"))) {
-        delta = camera.rotation.z;
+        let delta = camera.rotation.z;
         camera.rotation.z -= delta / 10;
+        for ( let i = 0; i < 2; i ++ ) {
+            let delta2 = wheels[i].rotation.z;
+            wheels[i].rotation.z -= delta2 / 10;
+        }
+
     }
 }
 
 function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function ttt() {
+
 }
