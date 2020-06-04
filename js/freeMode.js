@@ -9,7 +9,7 @@ let floorBox = [];//路边
 let obstacleBox = [];//障碍物
 let vehicleBox = [];//过往车辆
 let collideMeshList = [];//障碍物与车辆集合
-let speed = 10;//游戏速度
+let speed = 20;//游戏速度
 let obstacleNum =8;//障碍物数量
 let vehicleNum =5;//过往汽车数量
 let bonus20;
