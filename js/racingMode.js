@@ -30,7 +30,8 @@ let pause = document.getElementById("active");
 let music = document.getElementById("sound");
 let buffText = document.getElementById("buff");
 let matchText = document.getElementById("match");
-
+let challenge = document.getElementById("mode");
+let challengeMode = true;
 init();
 animate();
 
@@ -214,21 +215,23 @@ function init() {
     buff.name = "buff";
     scene.add(buff);
 
-    let matchGeometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
-    let matchMaterial = new THREE.MeshBasicMaterial({
-        map: THREE.ImageUtils.loadTexture("res/match/match15.png"),
-    });
-    matchMaterial.transparent = true;
-    match = new THREE.Mesh(matchGeometry, [undefined,undefined,undefined,undefined,matchMaterial,undefined]);
-    match.position.set(randomInt(-250, 250), 25, -1200);
-    match.name = "match";
-    scene.add(match);
+    if(!challengeMode) {
+        let matchGeometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+        let matchMaterial = new THREE.MeshBasicMaterial({
+            map: THREE.ImageUtils.loadTexture("res/match/match15.png"),
+        });
+        matchMaterial.transparent = true;
+        match = new THREE.Mesh(matchGeometry, [undefined, undefined, undefined, undefined, matchMaterial, undefined]);
+        match.position.set(randomInt(-250, 250), 25, -1200);
+        match.name = "match";
+        scene.add(match);
+        collideMeshList.push(match);
+    }
 
     collideMeshList.push(bonus20);
     collideMeshList.push(bonus50);
     collideMeshList.push(bonus100);
     collideMeshList.push(buff);
-    collideMeshList.push(match);
 
 
     //包围盒
@@ -298,6 +301,9 @@ function init() {
             music.innerText = "音效：开";
         }
     },false)
+    challenge.addEventListener('click',function(){
+        window.location.href = "freeMode.html";
+    },false)
 }
 
 function animate() {
@@ -313,6 +319,7 @@ function update() {
     keyboardEvent();
     sceneUpdate();
     bonusUpdate(delta);
+    matchUpdate(delta);
     obstacleUpdate();
     vehicleUpdate();
     collisionUpdate();
@@ -355,12 +362,43 @@ function sceneUpdate() {
     }
 }
 
+function matchUpdate(delta) {
+
+
+    if(challengeMode)
+    {
+
+    }
+    else {
+        match.position.z +=speed;
+
+        if (matchTime > 0) {
+            matchTime -= delta * speed / 20;
+            matchText.innerText = "挑战剩余：" + parseInt(matchTime) + "s";
+        } else if (matchFlag === true) {
+            matchText.innerText = "";
+            if (sound)
+                document.getElementById('succeed').play()
+            score += 300;
+            Console.innerText = "挑战成功！获得分数300！"
+            setTimeout(function () {
+                Console.innerText = ""
+            }, 2500);
+            matchFlag = false;
+            matchTime = 0;
+        }
+        if(match.position.z>150) {
+            match.position.z = -50000 - randomInt(250, 20500);
+            match.position.x = randomInt(-250, 250);
+        }
+    }
+}
+
 function bonusUpdate(delta) {
     bonus20.position.z +=speed;
     bonus50.position.z +=speed;
     bonus100.position.z +=speed;
     buff.position.z +=speed;
-    match.position.z +=speed;
 
     if(buffTime>0)
     {
@@ -372,22 +410,6 @@ function bonusUpdate(delta) {
         buffText.innerText = "";
     }
 
-    if(matchTime>0)
-    {
-        matchTime-=delta*speed/20;
-        matchText.innerText = "挑战剩余："+parseInt(matchTime)+"s";
-    }
-    else if(matchFlag ===true)
-    {
-        matchText.innerText = "";
-        if(sound)
-            document.getElementById('succeed').play()
-        score+=300;
-        Console.innerText = "挑战成功！获得分数300！"
-        setTimeout(function(){Console.innerText = ""},2500);
-        matchFlag =false;
-        matchTime = 0;
-    }
 
     if(bonus20.position.z>150) {
         bonus20.position.z = -15000 - randomInt(250, 5500);
@@ -405,10 +427,7 @@ function bonusUpdate(delta) {
         buff.position.z = -25000 - randomInt(250, 20500);
         buff.position.x = randomInt(-250, 250);
     }
-    if(match.position.z>150) {
-        match.position.z = -100000 - randomInt(250, 20500);
-        match.position.x = randomInt(-250, 250);
-    }
+
 }
 
 function collisionUpdate() {
@@ -467,7 +486,7 @@ function collisionUpdate() {
                 Console.innerText = "无敌buff已获得";
                 setTimeout(function(){Console.innerText = ""},2500);
             }
-            else if(collisionResults[0].object.name === "match")
+            else if(collisionResults[0].object.name === "match" && !challengeMode)
             {
                 if(sound)
                     document.getElementById('bonus').play()
@@ -477,11 +496,11 @@ function collisionUpdate() {
                 matchFlag = true;
                 match.visible = false;
                 setTimeout(function(){match.visible = true;},5000);
-                Console.innerText = "25s无碰撞挑战开始！";
+                Console.innerText = "无碰撞挑战开始！";
                 setTimeout(function(){Console.innerText = ""},2500);
             }
             else if(buffTime<=0){
-                if(matchTime>0)
+                if(matchTime>0 && !challengeMode)
                 {
                     if(sound)
                         document.getElementById('failed').play()

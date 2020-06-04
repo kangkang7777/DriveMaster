@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DriveMaster</title>
+    <script src="lib/three.js"></script>
+    <script src="lib/THREEx.KeyboardState.js"></script>
+    <script src="lib/THREEx.WindowResize.js"></script>
+    <script src="lib/OrbitControls.js"></script>
+    <style>
+        body {background-color: #111111;overflow: hidden;}
+        .speed { position: absolute;height: 50px;width: 10%;padding: 8px;margin: 10px auto;text-align: center;}
+        .speed button { margin: 2px 2px 2px 2px;width: 110px; height: 50px;border-width: 0;border-radius: 10px;background-color: #666666;cursor: pointer; font-family: Chalkboard, serif;color: white;font-size: 24px;}
+        .container {position: absolute;top: 10px;right: 10px;transition: transform 0.5s 4s;}
+        .container #score {float: right; color: white;font-size: 8vh;font-family: Chalkboard,serif;}
+        .container #console {margin-top: 50px; float: right;color: white;font-size: 8vh;font-family: Exo, serif;}
+        .container #buff { margin-right: 650px;color: white;font-size: 8vh;font-family: Exo, serif;}
+        .container #match {margin-right: 600px; margin-top: 55px;color: white;font-size: 8vh;font-family: Exo, serif;}
+    </style>
+</head>
+<body>
+<div class="speed">
+    <button id="up">加速</button>
+    <button id="down">减速</button>
+    <button id="active">暂停</button>
+    <button id="sound">音效：开</button>
+    <button id="mode">竞速模式</button>
+</div>
+<div class="container">
+    <div id="buff"></div>
+</div>
+<div class="container">
+    <div id="match"></div>
+</div>
+<div class="container">
+    <div id="score"></div>
+</div>
+<div class="container">
+    <div id="console"></div>
+</div>
+<div id="index"></div>
+<script src="js/racingMode.js"></script>
+<audio src="res/sound/crash.mp3" preload="auto" id="crash"></audio>
+<audio src="res/sound/bonus.mp3" preload="auto" id="bonus"></audio>
+<audio src="res/sound/pause.mp3" preload="auto" id="pause"></audio>
+<audio src="res/sound/start.mp3" preload="auto" id="start"></audio>
+<audio src="res/sound/succeed.mp3" preload="auto" id="succeed"></audio>
+<audio src="res/sound/failed.mp3" preload="auto" id="failed"></audio>
+
+</body>
+</html>
