@@ -24,8 +24,6 @@ let active = true;//暂停
 let sound = true;//音效
 let Score = document.getElementById("score");
 let Console = document.getElementById("console");
-let up = document.getElementById("up");
-let down = document.getElementById("down");
 let pause = document.getElementById("active");
 let music = document.getElementById("sound");
 let buffText = document.getElementById("buff");
@@ -218,7 +216,7 @@ function init() {
     if(!challengeMode) {
         let matchGeometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
         let matchMaterial = new THREE.MeshBasicMaterial({
-            map: THREE.ImageUtils.loadTexture("res/match/match15.png"),
+            map: THREE.ImageUtils.loadTexture("res/match/match.png"),
         });
         matchMaterial.transparent = true;
         match = new THREE.Mesh(matchGeometry, [undefined, undefined, undefined, undefined, matchMaterial, undefined]);
@@ -250,29 +248,6 @@ function init() {
     skyBox.position.set(300,0,0);
     scene.add(skyBox);
 
-    //按钮事件
-    up.addEventListener('click',function(){
-        if(speed<100) {
-            speed += 10;
-            Console.innerText = "目前速度为："+speed;
-            setTimeout(function(){Console.innerText = ""},2500);
-        }
-        else {
-            Console.innerText = "目前速度已到最大值！";
-            setTimeout(function(){Console.innerText = ""},2500);
-        }
-    },false)
-    down.addEventListener('click',function(){
-        if(speed>20) {
-            speed -= 10;
-            Console.innerText = "目前速度为："+speed;
-            setTimeout(function(){Console.innerText = ""},2500);
-        }
-        else {
-            Console.innerText = "目前速度已到最小值！";
-            setTimeout(function(){Console.innerText = ""},2500);
-        }
-    },false)
     pause.addEventListener('click',function(){
         if(active === true)
         {
