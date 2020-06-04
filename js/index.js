@@ -12,6 +12,14 @@ let collideMeshList = [];//障碍物与车辆集合
 let speed = 10;//游戏速度
 let obstacleNum =8;//障碍物数量
 let vehicleNum =5;//过往汽车数量
+let bonus20;
+let bonus50;
+let bonus100;
+let buff;
+let buffTime=0;
+let match;
+let matchTime=0;
+let matchFlag = false;
 let active = true;//暂停
 let sound = true;//音效
 let Score = document.getElementById("score");
@@ -20,6 +28,8 @@ let up = document.getElementById("up");
 let down = document.getElementById("down");
 let pause = document.getElementById("active");
 let music = document.getElementById("sound");
+let buffText = document.getElementById("buff");
+let matchText = document.getElementById("match");
 
 init();
 animate();
@@ -93,16 +103,20 @@ function init() {
     }
 
     // 加入树
-    let treeMaterial = new THREE.MeshBasicMaterial({
-        map: THREE.ImageUtils.loadTexture("res/texture/tree.png"),
-        //side: THREE.FrontSide,
-        //alphaMap:0xFFFFFF
-    });
-    treeMaterial.transparent = true;
     let treeGeometry = new THREE.PlaneGeometry(100, 200, 10, 10);
     for(let i =0;i<7;i++) {
-        let treeL = new THREE.Mesh(treeGeometry, treeMaterial);
-        let treeR = new THREE.Mesh(treeGeometry, treeMaterial);
+        let treeUrl1 = "res/texture/tree"+randomInt(1,7)+".png";
+        let treeMaterial1 = new THREE.MeshBasicMaterial({
+            map: THREE.ImageUtils.loadTexture(treeUrl1),
+        });
+        treeMaterial1.transparent = true;
+        let treeUrl2 = "res/texture/tree"+randomInt(1,7)+".png";
+        let treeMaterial2 = new THREE.MeshBasicMaterial({
+            map: THREE.ImageUtils.loadTexture(treeUrl2),
+        });
+        treeMaterial2.transparent = true;
+        let treeL = new THREE.Mesh(treeGeometry, treeMaterial1);
+        let treeR = new THREE.Mesh(treeGeometry, treeMaterial2);
         treeL.position.z = -100*(i*5+1);
         treeL.position.x = -350;
         treeL.position.y = 90;
@@ -117,7 +131,7 @@ function init() {
     }
 
     // 加入玩家
-    let cubeGeometry = new THREE.CubeGeometry(90, 60, 50, 10, 10, 10);
+    let cubeGeometry = new THREE.CubeGeometry(80, 60, 50, 10, 10, 10);
     let wireMaterial = new THREE.MeshBasicMaterial({
         map: THREE.ImageUtils.loadTexture("res/texture/player.png"),
     });
@@ -146,7 +160,7 @@ function init() {
     for(let i =0;i<vehicleNum;i++)
     {
         let url = "res/texture/car"+randomInt(1,3)+".png";
-        let vehicleGeometry = new THREE.CubeGeometry(120, 70, 10);
+        let vehicleGeometry = new THREE.CubeGeometry(90, 70, 10);
         let vehicleMaterial = new THREE.MeshBasicMaterial({
             map: THREE.ImageUtils.loadTexture(url),
 
@@ -158,6 +172,64 @@ function init() {
         vehicleBox.push(vehicle);
         collideMeshList.push(vehicle);
     }
+
+    //加入奖励
+    let bonus20Geometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+    let bonus20Material = new THREE.MeshBasicMaterial({
+        map: THREE.ImageUtils.loadTexture("res/bonus/20.png"),
+    });
+    bonus20Material.transparent = true;
+    bonus20 = new THREE.Mesh(bonus20Geometry, [undefined,undefined,undefined,undefined,bonus20Material,undefined]);
+    bonus20.position.set(randomInt(-250, 250), 25, -15000);
+    bonus20.name = "bonus20";
+    scene.add(bonus20);
+
+    let bonus50Geometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+    let bonus50Material = new THREE.MeshBasicMaterial({
+        map: THREE.ImageUtils.loadTexture("res/bonus/50.png"),
+    });
+    bonus50Material.transparent = true;
+    bonus50 = new THREE.Mesh(bonus50Geometry, [undefined,undefined,undefined,undefined,bonus50Material,undefined]);
+    bonus50.position.set(randomInt(-250, 250), 25, -25000);
+    bonus50.name = "bonus50";
+    scene.add(bonus50);
+
+    let bonus100Geometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+    let bonus100Material = new THREE.MeshBasicMaterial({
+        map: THREE.ImageUtils.loadTexture("res/bonus/100.png"),
+    });
+    bonus100Material.transparent = true;
+    bonus100 = new THREE.Mesh(bonus100Geometry, [undefined,undefined,undefined,undefined,bonus100Material,undefined]);
+    bonus100.position.set(randomInt(-250, 250), 25, -45000);
+    bonus100.name = "bonus100";
+    scene.add(bonus100);
+
+    let buffGeometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+    let buffMaterial = new THREE.MeshBasicMaterial({
+        map: THREE.ImageUtils.loadTexture("res/bonus/buff.png"),
+    });
+    buffMaterial.transparent = true;
+    buff = new THREE.Mesh(buffGeometry, [undefined,undefined,undefined,undefined,buffMaterial,undefined]);
+    buff.position.set(randomInt(-250, 250), 25, -30000);
+    buff.name = "buff";
+    scene.add(buff);
+
+    let matchGeometry = new THREE.CubeGeometry(50, 50, 10, 10, 10, 10);
+    let matchMaterial = new THREE.MeshBasicMaterial({
+        map: THREE.ImageUtils.loadTexture("res/match/match15.png"),
+    });
+    matchMaterial.transparent = true;
+    match = new THREE.Mesh(matchGeometry, [undefined,undefined,undefined,undefined,matchMaterial,undefined]);
+    match.position.set(randomInt(-250, 250), 25, -1200);
+    match.name = "match";
+    scene.add(match);
+
+    collideMeshList.push(bonus20);
+    collideMeshList.push(bonus50);
+    collideMeshList.push(bonus100);
+    collideMeshList.push(buff);
+    collideMeshList.push(match);
+
 
     //包围盒
     let path = "res/box/";
@@ -201,11 +273,15 @@ function init() {
     pause.addEventListener('click',function(){
         if(active === true)
         {
+            if(sound)
+                document.getElementById('pause').play()
             active = false;
             pause.innerText = "继续";
         }
         else
         {
+            if(sound)
+                document.getElementById('pause').play()
             active = true;
             pause.innerText = "暂停";
         }
@@ -236,12 +312,11 @@ function update() {
     score+=delta*speed/20;
     keyboardEvent();
     sceneUpdate();
+    bonusUpdate(delta);
     obstacleUpdate();
     vehicleUpdate();
     collisionUpdate();
 }
-
-
 
 function vehicleUpdate() {
     for(let i =0;i < vehicleBox.length;i++)
@@ -280,6 +355,62 @@ function sceneUpdate() {
     }
 }
 
+function bonusUpdate(delta) {
+    bonus20.position.z +=speed;
+    bonus50.position.z +=speed;
+    bonus100.position.z +=speed;
+    buff.position.z +=speed;
+    match.position.z +=speed;
+
+    if(buffTime>0)
+    {
+        buffTime-=delta*speed/20;
+        buffText.innerText = "buff 剩余："+parseInt(buffTime)+"s";
+    }
+    else
+    {
+        buffText.innerText = "";
+    }
+
+    if(matchTime>0)
+    {
+        matchTime-=delta*speed/20;
+        matchText.innerText = "挑战剩余："+parseInt(matchTime)+"s";
+    }
+    else if(matchFlag ===true)
+    {
+        matchText.innerText = "";
+        if(sound)
+            document.getElementById('succeed').play()
+        score+=300;
+        Console.innerText = "挑战成功！获得分数300！"
+        setTimeout(function(){Console.innerText = ""},2500);
+        matchFlag =false;
+        matchTime = 0;
+    }
+
+    if(bonus20.position.z>150) {
+        bonus20.position.z = -15000 - randomInt(250, 5500);
+        bonus20.position.x = randomInt(-250, 250);
+    }
+    if(bonus50.position.z>150) {
+        bonus50.position.z = -25000 - randomInt(250, 10500);
+        bonus50.position.x = randomInt(-250, 250);
+    }
+    if(bonus100.position.z>150) {
+        bonus100.position.z = -45000 - randomInt(250, 20500);
+        bonus100.position.x = randomInt(-250, 250);
+    }
+    if(buff.position.z>150) {
+        buff.position.z = -25000 - randomInt(250, 20500);
+        buff.position.x = randomInt(-250, 250);
+    }
+    if(match.position.z>150) {
+        match.position.z = -100000 - randomInt(250, 20500);
+        match.position.x = randomInt(-250, 250);
+    }
+}
+
 function collisionUpdate() {
     let originPoint = player.position.clone();
 
@@ -293,22 +424,89 @@ function collisionUpdate() {
         let ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
         let collisionResults = ray.intersectObjects(collideMeshList);
         if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
-            console.log("撞上辣");
-            crash();
+            if(collisionResults[0].object.name === "bonus20")
+            {
+                if(sound)
+                    document.getElementById('bonus').play()
+                score+=20;
+                Console.innerText = "分数奖励：20";
+                bonus20.visible = false;
+                setTimeout(function(){bonus20.visible = true;},5000);
+                setTimeout(function(){Console.innerText = ""},2500);
+
+            }
+            else if(collisionResults[0].object.name === "bonus50")
+            {
+                if(sound)
+                    document.getElementById('bonus').play()
+                score+=50;
+                bonus50.visible = false;
+                setTimeout(function(){bonus50.visible = true;},5000);
+                Console.innerText = "分数奖励：50";
+                setTimeout(function(){Console.innerText = ""},2500);
+            }
+            else if(collisionResults[0].object.name === "bonus100")
+            {
+                if(sound)
+                    document.getElementById('bonus').play()
+                score+=100;
+                bonus100.visible = false;
+                setTimeout(function(){bonus100.visible = true;},5000);
+                Console.innerText = "分数奖励：100";
+                setTimeout(function(){Console.innerText = ""},2500);
+            }
+            else if(collisionResults[0].object.name === "buff")
+            {
+                if(sound)
+                    document.getElementById('bonus').play()
+                if(buffTime<0)
+                    buffTime=0;
+                buffTime+=15;
+                buff.visible = false;
+                setTimeout(function(){buff.visible = true;},5000);
+                Console.innerText = "无敌buff已获得";
+                setTimeout(function(){Console.innerText = ""},2500);
+            }
+            else if(collisionResults[0].object.name === "match")
+            {
+                if(sound)
+                    document.getElementById('bonus').play()
+                if(matchTime<0)
+                    matchTime=0;
+                matchTime=25;
+                matchFlag = true;
+                match.visible = false;
+                setTimeout(function(){match.visible = true;},5000);
+                Console.innerText = "25s无碰撞挑战开始！";
+                setTimeout(function(){Console.innerText = ""},2500);
+            }
+            else if(buffTime<=0){
+                if(matchTime>0)
+                {
+                    if(sound)
+                        document.getElementById('failed').play()
+                    Console.innerText = "挑战失败！";
+                    matchFlag = false;
+                    matchText.innerText = "";
+                    setTimeout(function(){Console.innerText = ""},2500);
+                    matchTime = 0;
+                }
+                console.log("撞上辣");
+                crash();
+            }
             break;
         }
     }
 
     function crash() {
         if(sound)
-            document.getElementById('crash').play()
+            document.getElementById("crash").play()
         score-=5+speed/5;
         Score.innerText = "Score : " +parseInt(score);
         Console.innerText = "撞上了";
         setTimeout(function(){Console.innerText = ""},2500);
     }
 }
-
 
 function keyboardEvent() {
     let moveDistance = speed;
