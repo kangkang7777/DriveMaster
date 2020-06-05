@@ -298,7 +298,7 @@ function collisionUpdate() {
 }
 
 function keyboardEvent() {
-    let moveDistance = speed;
+    let moveDistance = speed/4;
     for ( let i = 0; i < wheels.length; i ++ ) {
         wheels[i].rotation.x = - performance.now()*speed/ 600 * Math.PI;
     }
