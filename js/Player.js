@@ -90,7 +90,6 @@ Player.prototype.initCar = function () {
             player.getObjectByName( 'wheel_rr' )
         );
 
-
         player.add( shadow );
         player.scale.set(35,35,35);
         scene.add( player );

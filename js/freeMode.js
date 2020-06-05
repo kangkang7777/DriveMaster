@@ -5,6 +5,7 @@ let clock = new THREE.Clock;
 let score = 0;//分数
 let player; //车
 let playerBox;
+let wheels = [];
 let lineBox = [];//标线+树
 let road;
 let floorBox = [];//路边
@@ -27,6 +28,16 @@ let matchFlag = false;
 let active = true;//暂停
 let sound = true;//音效
 let firstPersonCamera = false;
+let textureLoader;
+let maxAnisotropy;
+let car;
+let bonus;
+let floor;
+let obstacle;
+let roAd;
+let tree;
+let event;
+let line;
 let Score = document.getElementById("score");
 let Console = document.getElementById("console");
 let up = document.getElementById("up");
@@ -38,7 +49,6 @@ let matchText = document.getElementById("match");
 let challenge = document.getElementById("mode");
 let cameraControl = document.getElementById("camera");
 
-let wheels = [];
 init();
 animate();
 
@@ -62,110 +72,35 @@ function init() {
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     //controls.target.set( 0, 0.5, 0 );
 
-    //player
+    textureLoader = new THREE.TextureLoader();
+    maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+
+    //player盒子
     let material = [];
     material.transparent = true;
     let cubeGeometry = new THREE.CubeGeometry(60, 60, 90, 10, 10, 10);
     playerBox = new THREE.Mesh(cubeGeometry,material);
     scene.add(playerBox);
 
-    // 加入路面
-    let textureLoader = new THREE.TextureLoader();
-    let maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
-    let roadTexture = textureLoader.load( "res/texture/road.png" );
-    let roadMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, map: roadTexture , side: THREE.DoubleSide
-    } );
-    roadTexture.anisotropy = maxAnisotropy;
-    roadTexture.wrapS = roadTexture.wrapT = THREE.RepeatWrapping;
-    roadTexture.repeat.set( 1, 5 );
-    let roadGeometry = new THREE.PlaneGeometry(600, 12000, 10, 10);
-    road = new THREE.Mesh(roadGeometry, roadMaterial);
-    road.position.y = -0.5;
-    road.position.z = -5000;
-    road.rotation.x = Math.PI / 2;
-    scene.add(road);
+    //路
+    roAd = new Road();
+    roAd.init();
 
     // 加入平面
-    let floorTexture = textureLoader.load( "res/texture/plane.png" );
-    let floorMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, map: floorTexture , side: THREE.DoubleSide
-    } );
-    floorTexture.anisotropy = maxAnisotropy;
-    floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
-    floorTexture.repeat.set( 5, 2);
-    let floorGeometry = new THREE.PlaneGeometry(2000, 10000, 10, 10);
-    let floor = new THREE.Mesh(floorGeometry, floorMaterial);
-    floor.position.y = -0.5;
-    floor.position.x = -1300;
-    floor.position.z = -5000;
-    floor.rotation.x = Math.PI / 2;
-    scene.add(floor);
-    floorBox.push(floor);
-
-    let floor2 = new THREE.Mesh(floorGeometry, floorMaterial);
-    floor2.position.y = -0.5;
-    floor2.position.x = 1300;
-    floor2.position.z = -5000;
-    floor2.rotation.x = Math.PI / 2;
-    scene.add(floor2);
-    floorBox.push(floor2);
+    floor = new Floor();
+    floor.init();
 
     // 加入线
-    let lineMaterial = new THREE.MeshBasicMaterial({
-        //map: THREE.ImageUtils.loadTexture("res/texture/roadtexture.jpg"),
-        color: 0xFFFFFF,
-        side: THREE.DoubleSide
-    });
-    let lineGeometry = new THREE.PlaneGeometry(20, 200, 10, 10);
-    for(let i =0;i<7;i++) {
-        let line = new THREE.Mesh(lineGeometry, lineMaterial);
-        //line.position.y = -0.5;
-        line.position.z = -100*(i*5+1);
-        line.rotation.x = Math.PI / 2;
-        scene.add(line);
-        lineBox.push(line);
-    }
+    line = new Line();
+    line.init();
 
     // 加入树
-    let treeGeometry = new THREE.PlaneGeometry(100, 200, 10, 10);
-    for(let i =0;i<7;i++) {
-        let treeUrl1 = "res/texture/tree"+randomInt(1,7)+".png";
-        let treeMaterial1 = new THREE.MeshBasicMaterial({
-            map: THREE.ImageUtils.loadTexture(treeUrl1),
-        });
-        treeMaterial1.transparent = true;
-        let treeUrl2 = "res/texture/tree"+randomInt(1,7)+".png";
-        let treeMaterial2 = new THREE.MeshBasicMaterial({
-            map: THREE.ImageUtils.loadTexture(treeUrl2),
-        });
-        treeMaterial2.transparent = true;
-        let treeL = new THREE.Mesh(treeGeometry, treeMaterial1);
-        let treeR = new THREE.Mesh(treeGeometry, treeMaterial2);
-        treeL.position.z = -100*(i*5+1);
-        treeL.position.x = -350;
-        treeL.position.y = 90;
-        treeR.position.z = -100*(i*5+1);
-        treeR.position.x = 350;
-        treeR.position.y = 90;
-        //tree.rotation.x = Math.PI / 2;
-        scene.add(treeL);
-        lineBox.push(treeL);
-        scene.add(treeR);
-        lineBox.push(treeR);
-    }
+    tree = new Tree();
+    tree.init();
 
     // 加入障碍物
-    var loader = new THREE.TGALoader();
-    var texture2 = loader.load( 'res/texture/rock.tga' );
-    for(let i =0;i<obstacleNum;i++)
-    {
-        var material2 = new THREE.MeshPhongMaterial( { color: 0xffffff, map: texture2 } );
-        let obstacleGeometry = 	new THREE.BoxBufferGeometry( 50, 50, 50 );
-        let obstacle = new THREE.Mesh(obstacleGeometry, material2);
-        obstacle.position.set(randomInt(-250, 250), 25, randomInt(-10000, -500));
-        scene.add(obstacle);
-        obstacleBox.push(obstacle);
-        collideMeshList.push(obstacle);
-    }
+    obstacle = new Obstacle();
+    obstacle.init();
 
     // 加入过往车辆
     for(let i =0;i<vehicleNum;i++)
@@ -178,61 +113,21 @@ function init() {
     }
 
     //加入奖励
-    let bonus20Geometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
-    let bonus20Material = new THREE.MeshBasicMaterial({
-        map: THREE.ImageUtils.loadTexture("res/bonus/20.png"),
-    });
-    bonus20Material.transparent = true;
-    bonus20 = new THREE.Mesh(bonus20Geometry, [undefined,undefined,undefined,undefined,bonus20Material,undefined]);
-    bonus20.position.set(randomInt(-250, 250), 25, -15000);
-    bonus20.name = "bonus20";
-    scene.add(bonus20);
+    bonus = new Bonus();
+    bonus.init();
 
-    let bonus50Geometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
-    let bonus50Material = new THREE.MeshBasicMaterial({
-        map: THREE.ImageUtils.loadTexture("res/bonus/50.png"),
-    });
-    bonus50Material.transparent = true;
-    bonus50 = new THREE.Mesh(bonus50Geometry, [undefined,undefined,undefined,undefined,bonus50Material,undefined]);
-    bonus50.position.set(randomInt(-250, 250), 25, -25000);
-    bonus50.name = "bonus50";
-    scene.add(bonus50);
+    //加入模型
+    car = new Player();
+    car.initCar();
 
-    let bonus100Geometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
-    let bonus100Material = new THREE.MeshBasicMaterial({
-        map: THREE.ImageUtils.loadTexture("res/bonus/100.png"),
-    });
-    bonus100Material.transparent = true;
-    bonus100 = new THREE.Mesh(bonus100Geometry, [undefined,undefined,undefined,undefined,bonus100Material,undefined]);
-    bonus100.position.set(randomInt(-250, 250), 25, -45000);
-    bonus100.name = "bonus100";
-    scene.add(bonus100);
+    //按钮事件
+    event = new EventListener();
+    event.init();
 
-    let buffGeometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
-    let buffMaterial = new THREE.MeshBasicMaterial({
-        map: THREE.ImageUtils.loadTexture("res/bonus/buff.png"),
-    });
-    buffMaterial.transparent = true;
-    buff = new THREE.Mesh(buffGeometry, [undefined,undefined,undefined,undefined,buffMaterial,undefined]);
-    buff.position.set(randomInt(-250, 250), 25, -30000);
-    buff.name = "buff";
-    scene.add(buff);
-
-    let matchGeometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
-    let matchMaterial = new THREE.MeshBasicMaterial({
-        map: THREE.ImageUtils.loadTexture("res/match/match.png"),
-    });
-    matchMaterial.transparent = true;
-    match = new THREE.Mesh(matchGeometry, [undefined, undefined, undefined, undefined, matchMaterial, undefined]);
-    match.position.set(randomInt(-250, 250), 25, -1200);
-    match.name = "match";
-    scene.add(match);
-
-    collideMeshList.push(match);
-    collideMeshList.push(bonus20);
-    collideMeshList.push(bonus50);
-    collideMeshList.push(bonus100);
-    collideMeshList.push(buff);
+    // 光照
+    var light1 = new THREE.DirectionalLight( 0xffffff, 0.75 );
+    light1.position.set( 0, 100, 100);
+    scene.add( light1 );
 
     //包围盒
     let path = "res/box/";
@@ -250,87 +145,6 @@ function init() {
     skyBox.position.set(300,0,0);
     scene.add(skyBox);
 
-
-    // Lights
-    var light1 = new THREE.DirectionalLight( 0xffffff, 0.75 );
-    light1.position.set( 0, 100, 100);
-    scene.add( light1 );
-
-    //加入模型
-    let T = new Player();
-    T.initCar();
-
-
-
-    //按钮事件
-    up.addEventListener('click',function(){
-        if(speed<100) {
-            speed += 10;
-            Console.innerText = "目前速度为："+speed;
-            setTimeout(function(){Console.innerText = ""},2500);
-        }
-        else {
-            Console.innerText = "目前速度已到最大值！";
-            setTimeout(function(){Console.innerText = ""},2500);
-        }
-    },false)
-    down.addEventListener('click',function(){
-        if(speed>20) {
-            speed -= 10;
-            Console.innerText = "目前速度为："+speed;
-            setTimeout(function(){Console.innerText = ""},2500);
-        }
-        else {
-            Console.innerText = "目前速度已到最小值！";
-            setTimeout(function(){Console.innerText = ""},2500);
-        }
-    },false)
-    pause.addEventListener('click',function(){
-        if(active === true)
-        {
-            if(sound)
-                document.getElementById('pause').play()
-            active = false;
-            pause.innerText = "继续";
-        }
-        else
-        {
-            if(sound)
-                document.getElementById('pause').play()
-            active = true;
-            pause.innerText = "暂停";
-        }
-    },false)
-    music.addEventListener('click',function(){
-        if(sound === true)
-        {
-            sound = false;
-            music.innerText = "音效：关";
-        }
-        else
-        {
-            sound = true;
-            music.innerText = "音效：开";
-        }
-    },false)
-    challenge.addEventListener('click',function(){
-        window.location.href = "racingMode.html";
-    },false)
-    cameraControl.addEventListener('click',function(){
-       if(firstPersonCamera === false)
-       {
-           firstPersonCamera = true;
-           cameraControl.innerText = "第三人称";
-       }
-       else
-       {
-           firstPersonCamera = false;
-           cameraControl.innerText = "第一人称";
-           camera.position.set(0, 150, 400);
-
-       }
-    },false)
-
 }
 
 function animate() {
@@ -345,9 +159,9 @@ function update() {
     score+=delta*speed/20;
     keyboardEvent();
     sceneUpdate();
-    bonusUpdate(delta);
+    bonus.update();
     matchUpdate(delta);
-    obstacleUpdate();
+    obstacle.update();
     vehicleUpdate();
     collisionUpdate();
 }
@@ -361,41 +175,17 @@ function vehicleUpdate() {
     }
 }
 
-function obstacleUpdate() {
-    for(let i =0;i < obstacleBox.length;i++)
-    {
-        obstacleBox[i].position.z +=speed;
-        if(obstacleBox[i].position.z>150)
-            obstacleBox[i].position.set(randomInt(-250, 250), 25,-2000+randomInt(-8000,-2000));
-    }
-}
-
 function sceneUpdate() {
     if(firstPersonCamera)
     {
         camera.position.set(player.position.x-3,player.position.y+35,player.position.z+15);
     }
 
-    road.position.z +=speed;
-    if(road.position.z>1250) {
-        road.position.z = -5000;
-    }
-    for(let i =0;i < lineBox.length;i++)
-    {
-        lineBox[i].position.z +=speed;
-        if(lineBox[i].position.z>150) {
-            lineBox[i].position.z = -3350;
-            Score.innerText = "Score : " +parseInt(score);
-        }
-    }
-    for (let i =0;i < floorBox.length;i++)
-    {
-        floorBox[i].position.z +=speed;
-        if(floorBox[i].position.z>0) {
-            floorBox[i].position.z = -5000;
-            Score.innerText = "Score : " +parseInt(score);
-        }
-    }
+    roAd.update();
+
+    line.update();
+
+    floor.update();
 }
 
 function matchUpdate(delta) {
@@ -421,42 +211,6 @@ function matchUpdate(delta) {
         match.position.z = -50000 - randomInt(250, 20500);
         match.position.x = randomInt(-250, 250);
     }
-}
-
-function bonusUpdate(delta) {
-    bonus20.position.z +=speed;
-    bonus50.position.z +=speed;
-    bonus100.position.z +=speed;
-    buff.position.z +=speed;
-
-    if(buffTime>0)
-    {
-        buffTime-=delta*speed/20;
-        buffText.innerText = "buff 剩余："+parseInt(buffTime)+"s";
-    }
-    else
-    {
-        buffText.innerText = "";
-    }
-
-
-    if(bonus20.position.z>150) {
-        bonus20.position.z = -15000 - randomInt(250, 5500);
-        bonus20.position.x = randomInt(-250, 250);
-    }
-    if(bonus50.position.z>150) {
-        bonus50.position.z = -25000 - randomInt(250, 10500);
-        bonus50.position.x = randomInt(-250, 250);
-    }
-    if(bonus100.position.z>150) {
-        bonus100.position.z = -45000 - randomInt(250, 20500);
-        bonus100.position.x = randomInt(-250, 250);
-    }
-    if(buff.position.z>150) {
-        buff.position.z = -25000 - randomInt(250, 20500);
-        buff.position.x = randomInt(-250, 250);
-    }
-
 }
 
 function collisionUpdate() {
