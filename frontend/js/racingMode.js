@@ -185,7 +185,7 @@ function matchUpdate(delta) {
     function updateRank() {
         let xhr=new XMLHttpRequest();
         let data = "score="+parseInt(score);
-        let url = "http://localhost:8087/rank/updateRank";
+        let url = "http://129.28.167.191:8087/rank/updateRank";
         xhr.open("POST",url+"?"+data,true);
         xhr.send();
     }

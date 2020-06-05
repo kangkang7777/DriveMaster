@@ -2,7 +2,7 @@ getRank();
 
 function getRank() {
     let xhr=new XMLHttpRequest();
-    let url = "http://localhost:8087/rank/getRank";
+    let url = "http://129.28.167.191:8087/rank/getRank";
     xhr.onreadystatechange=function()
     {
         if (xhr.readyState===4)

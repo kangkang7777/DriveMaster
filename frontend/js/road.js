@@ -4,7 +4,7 @@ let Road = function () {
 
 Road.prototype.init = function () {
     // 加入路面
-    let roadTexture = textureLoader.load( "res/texture/road.png" );
+    let roadTexture = textureLoader.load( "res/texture/road.jpg" );
     let roadMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, map: roadTexture , side: THREE.DoubleSide
     } );
     roadTexture.anisotropy = maxAnisotropy;
