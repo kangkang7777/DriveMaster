@@ -3,7 +3,7 @@ var test = function () {
 
 test.prototype.initCar = function () {
     var bodyMaterial = new THREE.MeshPhysicalMaterial( {
-        color: 0xDC143C, metalness: 1.0, roughness: 0.5, clearcoat: 0.02, clearcoatRoughness: 0.01
+        color: 0xFF0000, metalness: 1.0, roughness: 0.5, clearcoat: 0.02, clearcoatRoughness: 0.01
     } );
 
     var detailsMaterial = new THREE.MeshStandardMaterial( {
