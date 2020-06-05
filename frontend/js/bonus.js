@@ -49,7 +49,7 @@ Bonus.prototype.init = function () {
     collideMeshList.push(buff);
 }
 
-Bonus.prototype.update = function () {
+Bonus.prototype.update = function (delta) {
     bonus20.position.z +=speed;
     bonus50.position.z +=speed;
     bonus100.position.z +=speed;

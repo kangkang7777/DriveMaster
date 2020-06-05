@@ -18,10 +18,16 @@ public class rankController {
     }
 
     @PostMapping
-    public List<Integer> updateRankAndGetRank(@RequestParam int score)
+    public List<Integer> updateRankAndGetRank(@RequestParam String score)
     {
-         rankApplication.updateRank(score);
+         rankApplication.updateRank(Integer.parseInt(score));
          return rankApplication.getRank();
+    }
+
+    @PostMapping("/updateRank")
+    public void updateRank(@RequestParam String score)
+    {
+        rankApplication.updateRank(Integer.parseInt(score));
     }
 
     @GetMapping("/getRank")

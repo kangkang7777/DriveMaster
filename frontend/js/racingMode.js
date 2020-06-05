@@ -179,7 +179,15 @@ function matchUpdate(delta) {
         setTimeout(function(){window.location.href ='rank.html'},2500);
 
         //ajax向后端发送分数
-
+        updateRank();
+        
+    }
+    function updateRank() {
+        let xhr=new XMLHttpRequest();
+        let data = "score="+parseInt(score);
+        let url = "http://localhost:8087/rank/updateRank";
+        xhr.open("POST",url+"?"+data,true);
+        xhr.send();
     }
 }
 

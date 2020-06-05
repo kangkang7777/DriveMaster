@@ -164,7 +164,7 @@ function update() {
     score+=delta*speed/20;
     keyboardEvent();
     sceneUpdate();
-    bonus.update();
+    bonus.update(delta);
     matCh.update(delta);
     obstacle.update();
     vehicleUpdate();
