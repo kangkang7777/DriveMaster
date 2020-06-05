@@ -159,7 +159,7 @@ function update() {
     score+=delta*speed/20;
     keyboardEvent();
     sceneUpdate();
-    bonus.update();
+    bonus.update(delta);
     obstacle.update();
     vehicleUpdate();
     collisionUpdate();
@@ -241,7 +241,7 @@ function collisionUpdate() {
                 bonus20.visible = false;
                 setTimeout(function(){bonus20.visible = true;},5000);
                 setTimeout(function(){Console.innerText = ""},2500);
-
+                break;
             }
             else if(collisionResults[0].object.name === "bonus50")
             {
@@ -252,6 +252,7 @@ function collisionUpdate() {
                 setTimeout(function(){bonus50.visible = true;},5000);
                 Console.innerText = "分数奖励：50";
                 setTimeout(function(){Console.innerText = ""},2500);
+                break;
             }
             else if(collisionResults[0].object.name === "bonus100")
             {
@@ -262,6 +263,7 @@ function collisionUpdate() {
                 setTimeout(function(){bonus100.visible = true;},5000);
                 Console.innerText = "分数奖励：100";
                 setTimeout(function(){Console.innerText = ""},2500);
+                break;
             }
             else if(collisionResults[0].object.name === "buff")
             {
@@ -274,10 +276,12 @@ function collisionUpdate() {
                 setTimeout(function(){buff.visible = true;},5000);
                 Console.innerText = "无敌buff已获得";
                 setTimeout(function(){Console.innerText = ""},2500);
+                break;
             }
             else if(buffTime<=0){
                 console.log("撞上辣");
                 crash();
+                break;
             }
             break;
         }
