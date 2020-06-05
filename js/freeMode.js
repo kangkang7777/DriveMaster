@@ -10,6 +10,8 @@ let road;
 let floorBox = [];//路边
 let obstacleBox = [];//障碍物
 let vehicleBox = [];//过往车辆
+let vehicleWheelsBox = [];//车轮子
+let vehicleHelper = [];
 let collideMeshList = [];//障碍物与车辆集合
 let speed = 20;//游戏速度
 let obstacleNum =8;//障碍物数量
@@ -24,6 +26,7 @@ let matchTime=0;
 let matchFlag = false;
 let active = true;//暂停
 let sound = true;//音效
+let firstPersonCamera = false;
 let Score = document.getElementById("score");
 let Console = document.getElementById("console");
 let up = document.getElementById("up");
@@ -33,6 +36,7 @@ let music = document.getElementById("sound");
 let buffText = document.getElementById("buff");
 let matchText = document.getElementById("match");
 let challenge = document.getElementById("mode");
+let cameraControl = document.getElementById("camera");
 
 let wheels = [];
 init();
@@ -68,33 +72,26 @@ function init() {
     // 加入路面
     let textureLoader = new THREE.TextureLoader();
     let maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
-
-    let texture1 = textureLoader.load( "res/texture/road.png" );
-    let material1 = new THREE.MeshPhongMaterial( { color: 0xffffff, map: texture1 , side: THREE.DoubleSide
+    let roadTexture = textureLoader.load( "res/texture/road.png" );
+    let roadMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, map: roadTexture , side: THREE.DoubleSide
     } );
-
-    texture1.anisotropy = maxAnisotropy;
-    texture1.wrapS = texture1.wrapT = THREE.RepeatWrapping;
-    texture1.repeat.set( 1, 5 );
-
-    let roadMaterial = new THREE.MeshBasicMaterial({
-        color: 0x222222,
-        side: THREE.DoubleSide
-    });
+    roadTexture.anisotropy = maxAnisotropy;
+    roadTexture.wrapS = roadTexture.wrapT = THREE.RepeatWrapping;
+    roadTexture.repeat.set( 1, 5 );
     let roadGeometry = new THREE.PlaneGeometry(600, 12000, 10, 10);
-    road = new THREE.Mesh(roadGeometry, material1);
+    road = new THREE.Mesh(roadGeometry, roadMaterial);
     road.position.y = -0.5;
     road.position.z = -5000;
     road.rotation.x = Math.PI / 2;
     scene.add(road);
 
     // 加入平面
-    let floorMaterial = new THREE.MeshStandardMaterial({
-        map: THREE.ImageUtils.loadTexture("res/texture/roadtexture.jpg"),
-        color: 0xF1E3A7,
-        side:THREE.BackSide
-
-});
+    let floorTexture = textureLoader.load( "res/texture/plane.png" );
+    let floorMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, map: floorTexture , side: THREE.DoubleSide
+    } );
+    floorTexture.anisotropy = maxAnisotropy;
+    floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+    floorTexture.repeat.set( 5, 2);
     let floorGeometry = new THREE.PlaneGeometry(2000, 10000, 10, 10);
     let floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.position.y = -0.5;
@@ -156,16 +153,6 @@ function init() {
         lineBox.push(treeR);
     }
 
-    // 加入玩家
-    // let cubeGeometry = new THREE.CubeGeometry(80, 60, 50, 10, 10, 10);
-    // let wireMaterial = new THREE.MeshBasicMaterial({
-    //     map: THREE.ImageUtils.loadTexture("res/texture/player.png"),
-    // });
-    // wireMaterial.transparent = true;
-    // player = new THREE.Mesh(cubeGeometry, [undefined,undefined,undefined,undefined,wireMaterial,undefined]);
-    // player.position.set(0, 25, 0);
-    // scene.add(player);
-
     // 加入障碍物
     var loader = new THREE.TGALoader();
     var texture2 = loader.load( 'res/texture/rock.tga' );
@@ -183,18 +170,11 @@ function init() {
     // 加入过往车辆
     for(let i =0;i<vehicleNum;i++)
     {
-        let url = "res/texture/car"+randomInt(1,3)+".png";
-        let vehicleGeometry = new THREE.CubeGeometry(90, 70, 10);
-        let vehicleMaterial = new THREE.MeshBasicMaterial({
-            map: THREE.ImageUtils.loadTexture(url),
-
-        });
-        vehicleMaterial.transparent = true;
-        let vehicle = new THREE.Mesh(vehicleGeometry, [undefined,undefined,undefined,undefined,vehicleMaterial,undefined]);
-        vehicle.position.set(randomInt(-250, 250), 25, randomInt(-10000, -500));
-        scene.add(vehicle);
-        vehicleBox.push(vehicle);
-        collideMeshList.push(vehicle);
+        let cubeGeometry = new THREE.CubeGeometry(60, 60, 90, 10, 10, 10);
+        vehicleHelper.push(new THREE.Mesh(cubeGeometry));
+        vehicleHelper[i].visible = false;
+        scene.add(vehicleHelper[i]);
+        collideMeshList.push(vehicleHelper[i]);
     }
 
     //加入奖励
@@ -254,12 +234,11 @@ function init() {
     collideMeshList.push(bonus100);
     collideMeshList.push(buff);
 
-
     //包围盒
     let path = "res/box/";
     let directions  = ["sky_negX", "sky_posX", "sky_posY", "sky_negY", "sky_posZ", "sky_negZ"];//获取对象
     let format = ".jpg";
-    let skyGeometry = new THREE.BoxGeometry( 8000, 8000, 8000 );
+    let skyGeometry = new THREE.BoxGeometry( 10000, 10000,10000 );
     let materialArray = [];
     for (let i = 0; i < 6; i++)
         materialArray.push( new THREE.MeshBasicMaterial({
@@ -277,7 +256,8 @@ function init() {
     light1.position.set( 0, 100, 100);
     scene.add( light1 );
 
-    let T = new test();
+    //加入模型
+    let T = new Player();
     T.initCar();
 
 
@@ -336,7 +316,20 @@ function init() {
     challenge.addEventListener('click',function(){
         window.location.href = "racingMode.html";
     },false)
+    cameraControl.addEventListener('click',function(){
+       if(firstPersonCamera === false)
+       {
+           firstPersonCamera = true;
+           cameraControl.innerText = "第三人称";
+       }
+       else
+       {
+           firstPersonCamera = false;
+           cameraControl.innerText = "第一人称";
+           camera.position.set(0, 150, 400);
 
+       }
+    },false)
 
 }
 
@@ -364,7 +357,7 @@ function vehicleUpdate() {
     {
         vehicleBox[i].position.z +=speed*0.5+i/10;
         if(vehicleBox[i].position.z>150)
-            vehicleBox[i].position.set(randomInt(-250, 250), 25,-2000+randomInt(-8000,-2000));
+            vehicleBox[i].position.set(randomInt(-250, 250), 0,-2000+randomInt(-8000,-2000));
     }
 }
 
@@ -378,9 +371,13 @@ function obstacleUpdate() {
 }
 
 function sceneUpdate() {
+    if(firstPersonCamera)
+    {
+        camera.position.set(player.position.x-3,player.position.y+35,player.position.z+15);
+    }
 
     road.position.z +=speed;
-    if(road.position.z>1500) {
+    if(road.position.z>1250) {
         road.position.z = -5000;
     }
     for(let i =0;i < lineBox.length;i++)
@@ -465,6 +462,10 @@ function bonusUpdate(delta) {
 function collisionUpdate() {
     //let originPoint = [player.position.x,player.position.y,player.position.z];
     playerBox.position.set(player.position.x,player.position.y,player.position.z);
+    for(let i =0;i<vehicleNum;i++)
+    {
+        vehicleHelper[i].position.set(vehicleBox[i].position.x,vehicleBox[i].position.y,vehicleBox[i].position.z);
+    }
     let originPoint = playerBox.position.clone();
 
     for (let vertexIndex = 0; vertexIndex < playerBox.geometry.vertices.length; vertexIndex++) {
@@ -566,6 +567,12 @@ function keyboardEvent() {
     for ( let i = 0; i < wheels.length; i ++ ) {
         wheels[i].rotation.x = - performance.now()*speed/ 600 * Math.PI;
     }
+    for ( let i = 0; i < vehicleWheelsBox.length; i ++ ) {
+        for(let j =0;j<vehicleWheelsBox[i].length;j++)
+        {
+            vehicleWheelsBox[i][j].rotation.x = - performance.now()*speed/ 600 * Math.PI;
+        }
+    }
 
     if (keyboard.pressed("left") || keyboard.pressed("A")) {
         if (player.position.x > -270) {
@@ -623,4 +630,8 @@ function keyboardEvent() {
 
 function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function randomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
 }
