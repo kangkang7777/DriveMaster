@@ -43,17 +43,6 @@ Bonus.prototype.init = function () {
     buff.name = "buff";
     scene.add(buff);
 
-    let matchGeometry = new THREE.CubeGeometry(50, 50, 30, 10, 10, 10);
-    let matchMaterial = new THREE.MeshBasicMaterial({
-        map: THREE.ImageUtils.loadTexture("res/match/match.png"),
-    });
-    matchMaterial.transparent = true;
-    match = new THREE.Mesh(matchGeometry, [undefined, undefined, undefined, undefined, matchMaterial, undefined]);
-    match.position.set(randomInt(-250, 250), 25, -1200);
-    match.name = "match";
-    scene.add(match);
-
-    collideMeshList.push(match);
     collideMeshList.push(bonus20);
     collideMeshList.push(bonus50);
     collideMeshList.push(bonus100);

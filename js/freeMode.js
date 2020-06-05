@@ -38,6 +38,7 @@ let roAd;
 let tree;
 let event;
 let line;
+let matCh;
 let Score = document.getElementById("score");
 let Console = document.getElementById("console");
 let up = document.getElementById("up");
@@ -116,13 +117,17 @@ function init() {
     bonus = new Bonus();
     bonus.init();
 
+    //加入挑战
+    matCh = new Match();
+    matCh.init();
+
     //加入模型
     car = new Player();
     car.initCar();
 
     //按钮事件
     event = new EventListener();
-    event.init();
+    event.init_1();
 
     // 光照
     var light1 = new THREE.DirectionalLight( 0xffffff, 0.75 );
@@ -160,7 +165,7 @@ function update() {
     keyboardEvent();
     sceneUpdate();
     bonus.update();
-    matchUpdate(delta);
+    matCh.update(delta);
     obstacle.update();
     vehicleUpdate();
     collisionUpdate();
@@ -186,31 +191,6 @@ function sceneUpdate() {
     line.update();
 
     floor.update();
-}
-
-function matchUpdate(delta) {
-
-    match.position.z +=speed;
-
-    if (matchTime > 0) {
-        matchTime -= delta * speed / 20;
-        matchText.innerText = "挑战剩余：" + parseInt(matchTime) + "s";
-    } else if (matchFlag === true) {
-        matchText.innerText = "";
-        if (sound)
-            document.getElementById('succeed').play()
-        score += 300;
-        Console.innerText = "挑战成功！获得分数300！"
-        setTimeout(function () {
-            Console.innerText = ""
-        }, 2500);
-        matchFlag = false;
-        matchTime = 0;
-    }
-    if(match.position.z>150) {
-        match.position.z = -50000 - randomInt(250, 20500);
-        match.position.x = randomInt(-250, 250);
-    }
 }
 
 function collisionUpdate() {
