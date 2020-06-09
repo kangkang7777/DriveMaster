@@ -6,8 +6,6 @@ EventListener.prototype.init_1 = function () {
     up.addEventListener('click',function(){
         if(speed<100) {
             speed += 10;
-            Console.innerText = "目前速度为："+speed;
-            setTimeout(function(){Console.innerText = ""},2500);
         }
         else {
             Console.innerText = "目前速度已到最大值！";
@@ -17,8 +15,6 @@ EventListener.prototype.init_1 = function () {
     down.addEventListener('click',function(){
         if(speed>20) {
             speed -= 10;
-            Console.innerText = "目前速度为："+speed;
-            setTimeout(function(){Console.innerText = ""},2500);
         }
         else {
             Console.innerText = "目前速度已到最小值！";

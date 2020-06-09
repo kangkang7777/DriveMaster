@@ -59,9 +59,15 @@ Player.prototype.initCar = function () {
             player.getObjectByName( 'glass' ).material = glassMaterial;
 
             player.add( shadow );
-            player.scale.set(35,35,35);
+            if(i>=vehicleNum/2)
+                player.scale.set(35,35,35);
+            else
+                player.scale.set(35,35,-35);
             vehicleBox.push(player.clone());
-            vehicleBox[i].position.set(randomInt(-250, 250),0, randomInt(-10000, -500));
+            if(i>=vehicleNum/2)
+                vehicleBox[i].position.set(randomInt(50, 250),0, randomInt(-10000, -500));
+            else
+                vehicleBox[i].position.set(randomInt(-250, -50),0, randomInt(-10000, -500));
             let temp = [];
             temp.push(
                 vehicleBox[i].getObjectByName( 'wheel_fl' ),

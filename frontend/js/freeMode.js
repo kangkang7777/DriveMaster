@@ -49,6 +49,7 @@ let buffText = document.getElementById("buff");
 let matchText = document.getElementById("match");
 let challenge = document.getElementById("mode");
 let cameraControl = document.getElementById("camera");
+let speedText = document.getElementById("speed-container");
 
 init();
 animate();
@@ -174,9 +175,17 @@ function update() {
 function vehicleUpdate() {
     for(let i =0;i < vehicleBox.length;i++)
     {
-        vehicleBox[i].position.z +=speed*0.5+i/10;
-        if(vehicleBox[i].position.z>150)
-            vehicleBox[i].position.set(randomInt(-250, 250), 0,-2000+randomInt(-8000,-2000));
+        if(i>=vehicleNum/2)
+            vehicleBox[i].position.z +=speed*0.5+i/10;
+        else
+            vehicleBox[i].position.z +=speed*0.5+i/10+20;
+        speedText.innerText = "速度："+parseInt(speed)+"km/h";
+        if(vehicleBox[i].position.z>150) {
+            if(i>=vehicleNum/2)
+                vehicleBox[i].position.set(randomInt(50, 250), 0, -2000 + randomInt(-8000, -2000));
+            else
+                vehicleBox[i].position.set(randomInt(-250, -50), 0, -2000 + randomInt(-8000, -2000));
+        }
     }
 }
 
@@ -297,7 +306,7 @@ function collisionUpdate() {
 }
 
 function keyboardEvent() {
-    let moveDistance = speed;
+    let moveDistance = speed/4;
     for ( let i = 0; i < wheels.length; i ++ ) {
         wheels[i].rotation.x = - performance.now()*speed/ 600 * Math.PI;
     }
@@ -360,6 +369,7 @@ function keyboardEvent() {
         }
 
     }
+
 }
 
 function randomInt(min, max) {
